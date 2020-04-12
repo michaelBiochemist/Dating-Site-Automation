@@ -1,0 +1,10 @@
+{
+    "first account": {
+        "passw": "uname1",
+        "uname": "passw1"
+    },
+    "second account": {
+        "passw": "uname2",
+        "uname": "passw2"
+    }
+}
