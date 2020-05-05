@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import selenium
-from selenium.webdriver import Firefox
+from selenium.webdriver import Firefox, ActionChains
 from selenium.webdriver.common.keys import Keys
 from datetime import datetime
 import time
@@ -12,7 +12,7 @@ main_site = 'https://www.okcupid.com'
 driver = Firefox()
 message_error_count = 0
 profile_iterator = 0
-exclude_list = ['trans','full figured','full-figured','overweight','a little extra'] 
+exclude_list = ['trans','black','full figured','full-figured','overweight','a little extra'] 
 action_options = {'like from search':{'location':'search','action':'like and message'},'message likes':{'location':'matches','action':'message'},'collect intros':{'location':'intros','action':'unlike'}}
 opener = 'Are you a sheep cause your body is unbaaaaalievable\n\nOk, that was cheesy. I saw your profile and thought "She must get 20 messages a day. Come up with something original and see if there\'s a fun person behind all the pretty."'
 # may want to add "has kid(s)"
@@ -37,8 +37,8 @@ def expect_all(*args):
 	else:
 		return elems
 
-def expect_first(xpath):
-	elems = expect_all(xpath)
+def expect_first(*args):
+	elems = expect_all(*args)
 	if not elems:
 		return False
 	return(elems[0])
@@ -65,7 +65,7 @@ def login(account_name):
 		sleepy()
 
 	print('closing react modal')
-	j = expect_first(".//button[@class='reactmodal-header-close']")
+	j = expect_first(".//button[@class='reactmodal-header-close']",17)
 	if j:
 		j.click()
 
@@ -85,12 +85,13 @@ def extract_profile_data():
 	profile['age'] = expect_first(".//span[@class='profile-basics-asl-age']").get_attribute('innerText')
 	profile['location'] = expect_first(".//span[@class='profile-basics-asl-location']").get_attribute('innerText')
 	profile['match'] = expect_first(".//span[@class='profile-basics-asl-match']").get_attribute('innerText')
-	details = expect_all(".//div[@class='matchprofile-details-text']")
-	essays = expect_all(".//div[@class='profile-essay']")
+	details = expect_all(".//div[@class='matchprofile-details-text']",18)
+	essays = expect_all(".//div[@class='profile-essay']",18)
 	for det in details:
 		profile['details'].append(det.get_attribute('innerText'))
-	for essay in essays:
-		profile['essays'].append(essay.get_attribute('innerText'))
+		if essays:
+			for essay in essays:
+				profile['essays'].append(essay.get_attribute('innerText'))
 	intro = driver.find_elements_by_xpath(".//div[starts-with(@class,'firstmessage') and contains(@class,'body-text')]")
 	if len(intro) != 0:
 		profile['intro message'] = intro[0].get_attribute('innerHTML')
@@ -99,10 +100,13 @@ def extract_profile_data():
 
 def filter_profile(profile):
 	global exclude_list
-	for exclude in exclude_list:
-		for detail in profile['details']:
-			if exclude.lower() in detail.lower():
-				return False
+	try:
+		for exclude in exclude_list:
+			for detail in profile['details']:
+				if exclude.lower() in detail.lower():
+					return False
+	except:
+		print('there was an error filtering for profile '+profile['username']+' id: '+profile['id'])
 	return True
 
 def grab_pictures(profile):
@@ -115,12 +119,17 @@ def grab_pictures(profile):
 	for img in images:
 		driver.save_screenshot('images/'+profile['id']+'_'+str(i)+'.png')
 		i+=1
-		img.click()
+		try:
+			time.sleep(1)
+			img.click()
+		except:
+			time.sleep(3)
+			img.click()
 	driver.back()
 		
 def navigate(locus):
 	global driver	
-	navbar = driver.find_elements_by_xpath(".//a[@class='navbar-link']")
+	navbar = expect_all(".//div[@class='navbar-link-icon-container']")
 	if locus == 'search':
 		navbar[2].click()
 	elif locus == 'matches':
@@ -131,6 +140,8 @@ def navigate(locus):
 		navbar[3].click()
 		tabs = expect_all(".//section/div/div/span")
 		tabs[1].click()
+	elif locus == 'doubletake':
+		navbar[0].click()
 	else:	
 		driver.get('https://www.okcupid.com/home')
 
@@ -144,20 +155,24 @@ def double_press(buttons):
 def send_message(message):
 	global driver
 	try:
-		mbox = driver.find_elements_by_xpath(".//textarea[@class='messenger-composer']")
+		mbox = expect_all(".//textarea[@class='messenger-composer']",18)
 		mbox[0].send_keys(message)
 		time.sleep(2)
 		buttons = driver.find_elements_by_xpath(".//button[@class='messenger-toolbar-send']")
 		double_press(buttons)
-		buttons = driver.find_elements_by_xpath(".//button[@class='messenger-user-row-close']")
-		if len(buttons) != 0:
-			double_press(buttons)
-		buttons = driver.find_elements_by_xpath(".//button[@class='connection-view-container-close-button']")
-		if len(buttons) != 0:
-			double_press(buttons)
-		return True
+		retvalue = True
 	except:
-		return False
+		retvalue = False
+	try:
+		buttons = expect_all(".//button[@class='messenger-user-row-close']",18)
+		if buttons:
+			double_press(buttons)
+		buttons = expect_all(".//button[@class='connection-view-container-close-button']",18)
+		if buttons:
+			double_press(buttons)
+	except:
+		print('couldn\'t close box')
+	return retvalue
 
 def interact_profile(action, profile_data, message):
 	global driver
@@ -250,10 +265,40 @@ def action_list(action):
 	except:
 		iterate_error_count()
 		action_list(action)
+
+def singletake():
+	global action_options
+	global opener
+	global message_error_count
+	current_action = action_options['like from search']
+	logfile = open('okcupid.log','a')
+	navigate('doubletake')
+	link = expect_first('.//div[@class="cardsummary-reflux-item cardsummary-reflux-profile-link"]')
+	link.click()
+	time.sleep(3)
+	pdata = extract_profile_data()
+	grab_pictures(pdata)
+	pdata['status'] = interact_profile(current_action['action'],pdata,opener)
+	pdata['opener'] = opener
+	write_status = '|'.join([pdata['username'],pdata['age'],pdata['location'],'doubletake',pdata['status'],pdata['date grabbed'],pdata['id']])
+	print(pdata['status'])
+	logfile.write('\n'+write_status)
+	logfile.close()
+
+def doubletake():
+	global driver
+	while True:
+		try:
+			singletake()
+		except:
+			ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+			singletake()
+
 	
 if __name__== '__main__':
 	login('real')
 	#action_list('like from search')
+	#doubletake()
 	action_list('message likes')
 	#login('catfish')
 	#action_list('collect intros')
