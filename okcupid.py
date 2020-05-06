@@ -9,7 +9,6 @@ import traceback
 import json
 import yaml
 
-main_site = 'https://www.okcupid.com'
 driver = Firefox()
 message_error_count = 0
 profile_iterator = 0
@@ -19,7 +18,10 @@ openers = load_openers()
 opener = openers[0] # update later to work withz multiple openers
 
 def main():
-	login('real')
+	url = 'https://www.okcupid.com'
+	secrets = load_secrets()
+	login(url, secrets)
+
 	#action_list('like from search')
 	#doubletake()
 	action_list('message likes')
@@ -51,11 +53,11 @@ def load_openers():
 		openers = yaml.safe_load(f)
 	return openers
 
-def load_accounts():
-	filepath = './config/accounts.json'
+def load_secrets():
+	filepath = './config/secrets.yaml'
 	with open(filepath) as f:
-		accounts = json.load(f)
-	return accounts
+		secrets = yaml.safe_load(f)
+	return secrets
 
 def sleepy():
 	time.sleep(6)
@@ -83,12 +85,12 @@ def expect_first(*args):
 		return False
 	return(elems[0])
 
-def login(account_name):
-	global main_site
+def login(url, secrets):
+	username = secrets.get('username')
+	password = secrets.get('password')
 	global driver
-	account = load_accounts()
 
-	driver.get(main_site)
+	driver.get(url)
 	a = expect_first('.//a')
 	if a.get_attribute('href') == 'https://www.okcupid.com/login':
 		#a.click()
@@ -96,8 +98,8 @@ def login(account_name):
 		sleepy()
 		email = driver.find_element_by_id('username')
 		password = driver.find_element_by_id('password')
-		email.send_keys(account[account_name]['uname'])
-		password.send_keys(account[account_name]['passw'])
+		email.send_keys(username)
+		password.send_keys(password)
 		password.send_keys(Keys.RETURN)
 		sleepy()
 
