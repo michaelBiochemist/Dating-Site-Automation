@@ -1,0 +1,14 @@
+{
+    "like from search": {
+        "location": "search",
+        "action": "like and message"
+    },
+    "message likes": {
+        "location": "matches",
+        "action": "message"
+    },
+    "collect intros": {
+        "location": "intros",
+        "action": "unlike"
+    }
+}
