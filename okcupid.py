@@ -13,6 +13,25 @@ main_site = 'https://www.okcupid.com'
 driver = Firefox()
 message_error_count = 0
 profile_iterator = 0
+exclude_list = load_exclude_list()
+action_options = load_action_options()
+openers = load_openers()
+opener = openers[0] # update later to work withz multiple openers
+
+def main():
+	login('real')
+	#action_list('like from search')
+	#doubletake()
+	action_list('message likes')
+	#login('catfish')
+	#action_list('collect intros')
+	# interact with search page
+	#navbar = driver.find_elements_by_xpath(".//a[@class='navbar-link']")
+	#navbar[2].click()
+	#cards = fun.driver.find_elements_by_xpath(".//div[@class='usercard']")
+	#cards[0].click()
+	#like = fun.expect_first(".//button[@id='like-button']")
+	#if len(like.get_attribute('innerText')) > 5
 
 def load_exclude_list():
 	filepath = './config/exclusion_keywords.yaml'
@@ -31,11 +50,6 @@ def load_openers():
 	with open(filepath) as f:
 		openers = yaml.safe_load(f)
 	return openers
-
-exclude_list = load_exclude_list()
-action_options = load_action_options()
-openers = load_openers()
-opener = openers[0] # update later to work withz multiple openers
 
 def sleepy():
 	time.sleep(6)
@@ -314,18 +328,5 @@ def doubletake():
 			ActionChains(driver).send_keys(Keys.ESCAPE).perform()
 			singletake()
 
-
 if __name__== '__main__':
-	login('real')
-	#action_list('like from search')
-	#doubletake()
-	action_list('message likes')
-	#login('catfish')
-	#action_list('collect intros')
-# interact with search page
-#navbar = driver.find_elements_by_xpath(".//a[@class='navbar-link']")
-#navbar[2].click()
-#cards = fun.driver.find_elements_by_xpath(".//div[@class='usercard']")
-#cards[0].click()
-#like = fun.expect_first(".//button[@id='like-button']")
-#if len(like.get_attribute('innerText')) > 5
+	main()
