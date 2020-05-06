@@ -1,0 +1,21 @@
+# ignore virtual environments
+venv*/
+
+# Ignore Python build artifacts
+*.eggs/
+*.egg-info/
+*.pyc
+*.pyo
+*.so
+__pycache__/
+
+# Ignore various IDE configuration files
+.idea/
+.vscode
+.history
+.project/
+.pydevproject/
+
+# Ignore OS metadata files
+*~
+.DS_Store
