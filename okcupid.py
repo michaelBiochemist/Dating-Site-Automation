@@ -13,11 +13,6 @@ main_site = 'https://www.okcupid.com'
 driver = Firefox()
 message_error_count = 0
 profile_iterator = 0
-exclude_list = load_exclude_list()
-action_options = load_action_options()
-openers = load_openers()
-opener = openers[0] # update later to work withz multiple openers
-# may want to add "has kid(s)"
 
 def load_exclude_list():
 	filepath = './config/exclusion_keywords.yaml'
@@ -36,6 +31,11 @@ def load_openers():
 	with open(filepath) as f:
 		openers = yaml.safe_load(f)
 	return openers
+
+exclude_list = load_exclude_list()
+action_options = load_action_options()
+openers = load_openers()
+opener = openers[0] # update later to work withz multiple openers
 
 def sleepy():
 	time.sleep(6)
