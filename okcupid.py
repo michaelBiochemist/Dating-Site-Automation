@@ -15,7 +15,8 @@ message_error_count = 0
 profile_iterator = 0
 exclude_list = load_exclude_list()
 action_options = load_action_options()
-opener = 'Are you a sheep cause your body is unbaaaaalievable\n\nOk, that was cheesy. I saw your profile and thought "She must get 20 messages a day. Come up with something original and see if there\'s a fun person behind all the pretty."'
+openers = load_openers()
+opener = openers[0] # update later to work withz multiple openers
 # may want to add "has kid(s)"
 
 def load_exclude_list():
@@ -29,6 +30,12 @@ def load_action_options():
 	with open(filepath) as f:
 		action_options = json.load(f)
 	return action_options
+
+def load_openers():
+	filepath = './openers.yaml'
+	with open(filepath) as f:
+		openers = yaml.safe_load(f)
+	return openers
 
 def sleepy():
 	time.sleep(6)
