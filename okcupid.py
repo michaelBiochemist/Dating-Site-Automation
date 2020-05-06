@@ -7,15 +7,22 @@ from datetime import datetime
 import time
 import traceback
 import json
+import yaml
 
 main_site = 'https://www.okcupid.com'
 driver = Firefox()
 message_error_count = 0
 profile_iterator = 0
-exclude_list = ['trans','black','full figured','full-figured','overweight','a little extra'] 
+exclude_list = load_exclude_list()
 action_options = {'like from search':{'location':'search','action':'like and message'},'message likes':{'location':'matches','action':'message'},'collect intros':{'location':'intros','action':'unlike'}}
 opener = 'Are you a sheep cause your body is unbaaaaalievable\n\nOk, that was cheesy. I saw your profile and thought "She must get 20 messages a day. Come up with something original and see if there\'s a fun person behind all the pretty."'
 # may want to add "has kid(s)"
+
+def load_exclude_list():
+	filepath = './exclusion_keywords.yaml'
+	with open(filepath) as f:
+		exclude_list = yaml.safe_load(f)
+	return exclude_list
 
 def sleepy():
 	time.sleep(6)
@@ -126,9 +133,9 @@ def grab_pictures(profile):
 			time.sleep(3)
 			img.click()
 	driver.back()
-		
+
 def navigate(locus):
-	global driver	
+	global driver
 	navbar = expect_all(".//div[@class='navbar-link-icon-container']")
 	if locus == 'search':
 		navbar[2].click()
@@ -142,7 +149,7 @@ def navigate(locus):
 		tabs[1].click()
 	elif locus == 'doubletake':
 		navbar[0].click()
-	else:	
+	else:
 		driver.get('https://www.okcupid.com/home')
 
 def double_press(buttons):
@@ -176,7 +183,7 @@ def send_message(message):
 
 def interact_profile(action, profile_data, message):
 	global driver
-	sleepy()	
+	sleepy()
 	print(action)
 	pass_button = driver.find_elements_by_xpath(".//button[@id='pass-button']")
 	like_button = driver.find_elements_by_xpath(".//button[@id='like-button']")
@@ -193,7 +200,7 @@ def interact_profile(action, profile_data, message):
 	if action ==  'like':
 		if len(like_button) == 0:
 			return 'missing like button'
-		return 'liked' 
+		return 'liked'
 	elif action ==  'like and message':
 		print('doing action like and message')
 		if len(like_button) == 0:
@@ -261,7 +268,7 @@ def action_list(action):
 				iterate_errror_count()
 			pro_file.write(json.dumps(pdata, sort_keys=True,indent=4))
 			pro_file.close()
-			logfile.close()	
+			logfile.close()
 	except:
 		iterate_error_count()
 		action_list(action)
@@ -294,7 +301,7 @@ def doubletake():
 			ActionChains(driver).send_keys(Keys.ESCAPE).perform()
 			singletake()
 
-	
+
 if __name__== '__main__':
 	login('real')
 	#action_list('like from search')
