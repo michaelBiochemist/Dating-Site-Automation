@@ -51,6 +51,12 @@ def load_openers():
 		openers = yaml.safe_load(f)
 	return openers
 
+def load_accounts():
+	filepath = './config/accounts.json'
+	with open(filepath) as f:
+		accounts = json.load(f)
+	return accounts
+
 def sleepy():
 	time.sleep(6)
 
@@ -80,10 +86,7 @@ def expect_first(*args):
 def login(account_name):
 	global main_site
 	global driver
-	account_file = open('accounts.json')
-	account  = account_file.read()
-	account_file.close()
-	account = json.loads(account)
+	account = load_accounts()
 
 	driver.get(main_site)
 	a = expect_first('.//a')
