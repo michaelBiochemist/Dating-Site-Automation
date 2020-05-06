@@ -20,19 +20,19 @@ opener = openers[0] # update later to work withz multiple openers
 # may want to add "has kid(s)"
 
 def load_exclude_list():
-	filepath = './exclusion_keywords.yaml'
+	filepath = './config/exclusion_keywords.yaml'
 	with open(filepath) as f:
 		exclude_list = yaml.safe_load(f)
 	return exclude_list
 
 def load_action_options():
-	filepath = './action_options.json'
+	filepath = './config/action_options.json'
 	with open(filepath) as f:
 		action_options = json.load(f)
 	return action_options
 
 def load_openers():
-	filepath = './openers.yaml'
+	filepath = './config/openers.yaml'
 	with open(filepath) as f:
 		openers = yaml.safe_load(f)
 	return openers
