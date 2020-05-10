@@ -7,15 +7,57 @@ from datetime import datetime
 import time
 import traceback
 import json
+import yaml
 
-main_site = 'https://www.okcupid.com'
 driver = Firefox()
 message_error_count = 0
 profile_iterator = 0
-exclude_list = ['trans','black','full figured','full-figured','overweight','a little extra'] 
-action_options = {'like from search':{'location':'search','action':'like and message'},'message likes':{'location':'matches','action':'message'},'collect intros':{'location':'intros','action':'unlike'}}
-opener = 'Are you a sheep cause your body is unbaaaaalievable\n\nOk, that was cheesy. I saw your profile and thought "She must get 20 messages a day. Come up with something original and see if there\'s a fun person behind all the pretty."'
-# may want to add "has kid(s)"
+exclude_list = load_exclude_list()
+action_options = load_action_options()
+openers = load_openers()
+opener = openers[0] # update later to work withz multiple openers
+
+def main():
+	url = 'https://www.okcupid.com'
+	secrets = load_secrets()
+	login(url, secrets)
+
+	#action_list('like from search')
+	#doubletake()
+	action_list('message likes')
+	#login('catfish')
+	#action_list('collect intros')
+	# interact with search page
+	#navbar = driver.find_elements_by_xpath(".//a[@class='navbar-link']")
+	#navbar[2].click()
+	#cards = fun.driver.find_elements_by_xpath(".//div[@class='usercard']")
+	#cards[0].click()
+	#like = fun.expect_first(".//button[@id='like-button']")
+	#if len(like.get_attribute('innerText')) > 5
+
+def load_exclude_list():
+	filepath = './config/exclusion_keywords.yaml'
+	with open(filepath) as f:
+		exclude_list = yaml.safe_load(f)
+	return exclude_list
+
+def load_action_options():
+	filepath = './config/action_options.json'
+	with open(filepath) as f:
+		action_options = json.load(f)
+	return action_options
+
+def load_openers():
+	filepath = './config/openers.yaml'
+	with open(filepath) as f:
+		openers = yaml.safe_load(f)
+	return openers
+
+def load_secrets():
+	filepath = './config/secrets.yaml'
+	with open(filepath) as f:
+		secrets = yaml.safe_load(f)
+	return secrets
 
 def sleepy():
 	time.sleep(6)
@@ -43,15 +85,12 @@ def expect_first(*args):
 		return False
 	return(elems[0])
 
-def login(account_name):
-	global main_site
+def login(url, secrets):
+	username = secrets.get('username')
+	password = secrets.get('password')
 	global driver
-	account_file = open('accounts.json')
-	account  = account_file.read()
-	account_file.close()
-	account = json.loads(account)
 
-	driver.get(main_site)
+	driver.get(url)
 	a = expect_first('.//a')
 	if a.get_attribute('href') == 'https://www.okcupid.com/login':
 		#a.click()
@@ -59,8 +98,8 @@ def login(account_name):
 		sleepy()
 		email = driver.find_element_by_id('username')
 		password = driver.find_element_by_id('password')
-		email.send_keys(account[account_name]['uname'])
-		password.send_keys(account[account_name]['passw'])
+		email.send_keys(username)
+		password.send_keys(password)
 		password.send_keys(Keys.RETURN)
 		sleepy()
 
@@ -126,9 +165,9 @@ def grab_pictures(profile):
 			time.sleep(3)
 			img.click()
 	driver.back()
-		
+
 def navigate(locus):
-	global driver	
+	global driver
 	navbar = expect_all(".//div[@class='navbar-link-icon-container']")
 	if locus == 'search':
 		navbar[2].click()
@@ -142,7 +181,7 @@ def navigate(locus):
 		tabs[1].click()
 	elif locus == 'doubletake':
 		navbar[0].click()
-	else:	
+	else:
 		driver.get('https://www.okcupid.com/home')
 
 def double_press(buttons):
@@ -176,7 +215,7 @@ def send_message(message):
 
 def interact_profile(action, profile_data, message):
 	global driver
-	sleepy()	
+	sleepy()
 	print(action)
 	pass_button = driver.find_elements_by_xpath(".//button[@id='pass-button']")
 	like_button = driver.find_elements_by_xpath(".//button[@id='like-button']")
@@ -193,7 +232,7 @@ def interact_profile(action, profile_data, message):
 	if action ==  'like':
 		if len(like_button) == 0:
 			return 'missing like button'
-		return 'liked' 
+		return 'liked'
 	elif action ==  'like and message':
 		print('doing action like and message')
 		if len(like_button) == 0:
@@ -261,7 +300,7 @@ def action_list(action):
 				iterate_errror_count()
 			pro_file.write(json.dumps(pdata, sort_keys=True,indent=4))
 			pro_file.close()
-			logfile.close()	
+			logfile.close()
 	except:
 		iterate_error_count()
 		action_list(action)
@@ -294,18 +333,5 @@ def doubletake():
 			ActionChains(driver).send_keys(Keys.ESCAPE).perform()
 			singletake()
 
-	
 if __name__== '__main__':
-	login('real')
-	#action_list('like from search')
-	#doubletake()
-	action_list('message likes')
-	#login('catfish')
-	#action_list('collect intros')
-# interact with search page
-#navbar = driver.find_elements_by_xpath(".//a[@class='navbar-link']")
-#navbar[2].click()
-#cards = fun.driver.find_elements_by_xpath(".//div[@class='usercard']")
-#cards[0].click()
-#like = fun.expect_first(".//button[@id='like-button']")
-#if len(like.get_attribute('innerText')) > 5
+	main()
